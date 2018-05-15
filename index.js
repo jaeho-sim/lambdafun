@@ -17,7 +17,7 @@ exports.handler = (event, context) => {
 
       if(request.intent.name === "HelloIntent") {
         let name = request.intent.slots.FirstName.value;
-        options.speechText = "Hello " + name + ". ";
+        options.speechText = `Hello <say-as interpret-as="spell-out">${name}</say-as>. `;
         options.speechText += getWish();
         getQuote((quote,err) => {
           if(err) {
@@ -90,8 +90,8 @@ var buildResponse = (options) => {
 		version: "1.0",
 		response: {
 	    outputSpeech: {
-	      type: "PlainText",
-	      text: options.speechText
+	      type: "SSML",
+        ssml: "<speak>" + options.speechText + "</speak>"
 	    },
 	    shouldEndSession: options.endSession
 	  }
@@ -107,3 +107,7 @@ var buildResponse = (options) => {
   }
   return response;
 }
+
+
+// lambda-local -l index.js -e event.json
+
