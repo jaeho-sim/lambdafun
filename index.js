@@ -1,7 +1,7 @@
 'use strict';
 var http = require('http');
 
-exports.handler = (event, context) => {
+exports.handler = (event, context, callback) => {
 	var request = event.request;
   var session = event.session;
 
