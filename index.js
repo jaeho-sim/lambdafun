@@ -1,6 +1,10 @@
 'use strict';
 var http = require('http');
 
+// handler function
+// only this function visible to the lambda service
+// referencing "response.json" to build, i.e. request, session, etc
+// first, look at the "type", and see which type of the request it is
 exports.handler = (event, context, callback) => {
 	var request = event.request;
   var session = event.session;
@@ -9,10 +13,17 @@ exports.handler = (event, context, callback) => {
     event.session.attributes = {};
   }
 
+  // check request type
+  // alexa sends 3 types of requests:
+  //    1. LaunchRequest - whenever user open a skill (e.g. welcome message)
+  //    2. IntentRequest - whenever user say some command
+  //    3. SessionEndedRequest - If user doesnt say anything or any error happens - usually do clean ups
+  // type has to be string
   try {
   	if(request.type === "LaunchRequest") {
       handleLaunchRequest(context);
   	}
+    // check intent type
   	else if(request.type === "IntentRequest") {
       if(request.intent.name === "HelloIntent") {
         handleHelloIntent(request, context);
@@ -44,6 +55,8 @@ var handleHelloIntent = (request, context) => {
   let name = request.intent.slots.FirstName.value;
   options.speechText = `Hello <say-as interpret-as="spell-out">${name}</say-as>. `;
   options.speechText += getWish();
+  // this is non-blocking function, but options.endsession need to be executed only when we get the quote,
+  // so options.endsession and context.succeed is moved to inside the function
   getQuote((quote,err) => {
     if(err) {
       context.fail(err);
@@ -105,18 +118,23 @@ var handleLaunchRequest = (context) => {
   options.speechText = "Welcome to Greetings skill. Using our skill you can greet your guests. Whom you want to greet? ";
   options.repromptText = "You can say for example, say hello to John. ";
   options.endSession = false;
+  // parse to succeed
   context.succeed(buildResponse(options));
 }
 
+// getting random quote from the api
 var getQuote = (callback) => {
   var url = "http://api.forismatic.com/api/1.0/json?method=getQuote&lang=en&format=json";
   var req = http.get(url, (res) => {
     var body = "";
 
+    // everytime it gets data from the response, it triggers a data event,
+    // it will parse the chunk of the whole body, so we need to keep accumulating it until ends
     res.on('data', (chunk) => {
       body += chunk;
     });
 
+    // response is in json string so have to convert to js string
     res.on('end', () => {
       body = body.replace(/\\/g, '');
       var quote = JSON.parse(body);
@@ -129,9 +147,10 @@ var getQuote = (callback) => {
   });
 }
 
+// speech change depend on the current time
 var getWish = () => {
   var myDate = new Date();
-  var hours = myDate.getUTCHours() - 8;
+  var hours = myDate.getUTCHours() - 5; // eastern time zone
   if(hours < 0) {
     hours = hours + 24;
   }
@@ -151,19 +170,23 @@ var buildResponse = (options) => {
 	var response = {
 		version: "1.0",
 		response: {
+      // required
 	    outputSpeech: {
 	      type: "SSML",
         ssml: "<speak>" + options.speechText + "</speak>"
 	    },
+      // required
 	    shouldEndSession: options.endSession
 	  }
 	};
 
+  // reprompt is optional - used when we want to keep the session
+  // it will check if the reprompt text is present or not, then repopulate
   if(options.repromptText) {
     response.response.reprompt = {
       outputSpeech: {
-        type: "PlainText",
-        text: options.repromptText
+        type: "SSML",
+        text: "<speak>" + options.repromptText + "</speak>"
       }
     };
   }
