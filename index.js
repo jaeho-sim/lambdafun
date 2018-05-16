@@ -9,6 +9,11 @@ var bst = require('bespoken-tools');
 // referencing "response.json" to build, i.e. request, session, etc
 // first, look at the "type", and see which type of the request it is
 exports.handler = bst.Logless.capture("352b4022-3409-43ea-9743-292acac9e1e2", (event, context, callback) => {
+
+  if(process.env.NODE_DEBUG_EN) {
+    console.log("Request:\n" + JSON.stringify(event, null, 2));
+  }
+
 	var request = event.request;
   var session = event.session;
 
@@ -182,7 +187,7 @@ var getWish = () => {
     return "Good morning. ";
   }
   else if(hours < 18) {
-    return "Good atfternoon. ";
+    return "Good afternoon. ";
   }
   else {
     return "Good evening. ";
@@ -190,6 +195,10 @@ var getWish = () => {
 }
 
 var buildResponse = (options) => {
+  if(process.env.NODE_DEBUG_EN) {
+    console.log("BuildResponse options:\n" + JSON.stringify(options, null, 2));
+  }
+
 	var response = {
 		version: "1.0",
 		response: {
@@ -236,6 +245,10 @@ var buildResponse = (options) => {
 
   if(options.session && options.session.attributes) {
     response.sessionAttributes = options.session.attributes;
+  }
+
+  if(process.env.NODE_DEBUG_EN) {
+    console.log("Response:\n" + JSON.stringify(response, null, 2));
   }
 
   return response;
