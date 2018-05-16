@@ -14,3 +14,7 @@ notes:
 	- create a user and give permissions at IAM Management console
 	- "aws configure" in terminal - access key
 	- use "publish.sh"
+- package "bespoken-tools":
+	- enables development and testing without Lambda
+	- install the package, type "bst proxy lambda index.js"
+	- in skills console, Endpoint -> HTTPS -> copy url to default region -> select "My development endpoint is a sub-domain of a domain that has a wildcard certificate from a certificate factory"

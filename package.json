@@ -1,0 +1,24 @@
+{
+  "name": "lambdafun",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "bespoken-tools": "^1.2.9"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "proxy": "bst proxy lambda index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/simjh0919/lambdafun.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/simjh0919/lambdafun/issues"
+  },
+  "homepage": "https://github.com/simjh0919/lambdafun#readme"
+}

@@ -1,11 +1,14 @@
 'use strict';
+
 var http = require('http');
+// bespoken bst for testing
+var bst = require('bespoken-tools');
 
 // handler function
 // only this function visible to the lambda service
 // referencing "response.json" to build, i.e. request, session, etc
 // first, look at the "type", and see which type of the request it is
-exports.handler = (event, context, callback) => {
+exports.handler = bst.Logless.capture("352b4022-3409-43ea-9743-292acac9e1e2", (event, context, callback) => {
 	var request = event.request;
   var session = event.session;
 
@@ -48,7 +51,7 @@ exports.handler = (event, context, callback) => {
   catch(e) {
     context.fail("Exception: " + e);
   }
-}
+});
 
 var handleHelloIntent = (request, context) => {
   let options = {};
