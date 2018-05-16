@@ -2,7 +2,7 @@ notes:
 
 - named hadler as "index_handler", so have to create index.js
 - the code "index.js" goes into the code editor of GreetingSkill function in aws lambda management console
-- In the aws lambda management console, to test the idex.js file, use Test and edit Input test event, copy and paste the events.json code
+- In the aws lambda management console, to test the index.js file, use Test and edit Input test event, copy and paste the events.json code
 - To do this locally, type in "lambda-local -l index.js -e event.json" in terminal
 	- npm install -g lambda-local
 - get ARN from aws lambda management console, paste it in Alexa skills kit develop console
@@ -18,3 +18,9 @@ notes:
 	- enables development and testing without Lambda
 	- install the package, type "bst proxy lambda index.js"
 	- in skills console, Endpoint -> HTTPS -> copy url to default region -> select "My development endpoint is a sub-domain of a domain that has a wildcard certificate from a certificate factory"
+- Cards:
+	- https://developer.amazon.com/docs/custom-skills/include-a-card-in-your-skills-response.html
+	- JPEG, PNG
+	- cannot be larger than 2MB
+	- smallImageUrl: 720w x 480h recommended
+	- largeImageUrl: 1200w x 800h recommended

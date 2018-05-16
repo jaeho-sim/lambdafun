@@ -12,6 +12,14 @@ exports.handler = bst.Logless.capture("352b4022-3409-43ea-9743-292acac9e1e2", (e
 	var request = event.request;
   var session = event.session;
 
+  // Session:
+  // used when want to remember information from one intent to another intent within a given session
+  // e.g. when wants to use "more"
+  // whatever information you pass to "sessionAttributes",
+  // that will be sent back to you in the next request session in "attributes"
+
+  // alexa might not even send the attributes property if session attribute does not exist,
+  // so we need to initialize session attribute
   if(!event.session.attributes) {
     event.session.attributes = {};
   }
@@ -31,11 +39,17 @@ exports.handler = bst.Logless.capture("352b4022-3409-43ea-9743-292acac9e1e2", (e
       if(request.intent.name === "HelloIntent") {
         handleHelloIntent(request, context);
       }
-      else if(request.intent.name === 'QuoteIntent') {
+      else if(request.intent.name === "QuoteIntent") {
         handleQuoteIntent(request, context, session);
       }
-      else if(request.intent.name === 'NextQuoteIntent') {
+      else if(request.intent.name === "NextQuoteIntent") {
        handleNextQuoteIntent(request, context, session); 
+      }
+      else if(request.intent.name === "AMAZON.StopIntent" || request.intent.name === "AMAZON.CancelIntent") {
+        context.succeed(buildResponse({
+          speechText: "Good bye. ",
+          endSession: true
+        }));
       }
       else {
         throw "Unknown intent";
@@ -58,6 +72,9 @@ var handleHelloIntent = (request, context) => {
   let name = request.intent.slots.FirstName.value;
   options.speechText = `Hello <say-as interpret-as="spell-out">${name}</say-as>. `;
   options.speechText += getWish();
+
+  options.cardTitle = `Hello ${name}!`;
+
   // this is non-blocking function, but options.endsession need to be executed only when we get the quote,
   // so options.endsession and context.succeed is moved to inside the function
   getQuote((quote,err) => {
@@ -66,6 +83,8 @@ var handleHelloIntent = (request, context) => {
     }
     else {
       options.speechText += quote;
+      options.cardContent = quote;
+      options.imageUrl = "https://upload.wikimedia.org/wikipedia/commons/5/5b/Hello_smile.png";
       options.endSession = true;
       context.succeed(buildResponse(options));
     }
@@ -83,9 +102,9 @@ var handleQuoteIntent = (request, context, session) => {
     else {
       options.speechText = quote;
       options.speechText += " Do you want to listen to one more quote? ";
-      options.repromptText += "You can say yes or one more. ";
+      options.repromptText = "You can say yes or one more. ";
       options.session.attributes.quoteIntent = true;
-      options.endSession = true;
+      options.endSession = false;
       context.succeed(buildResponse(options));
     }
   });
@@ -103,16 +122,17 @@ var handleNextQuoteIntent = (request, context, session) => {
       else {
         options.speechText = quote;
         options.speechText += " Do you want to listen to one more quote? ";
-        options.repromptText += "You can say yes or one more. ";
-        options.session.attributes.quoteIntent = true;
-        options.endSession = true;
+        options.repromptText = "You can say yes or one more. ";
+        // options.session.attributes.quoteIntent = true;
+        options.endSession = false;
         context.succeed(buildResponse(options));
       }
     });
   }
   else {
-    options.speechText += "Wrong invocation of this intent. ";
+    options.speechText = "Wrong invocation of this intent. ";
     options.endSession = true;
+    context.succeed(buildResponse(options));
   }
 }
 
@@ -189,9 +209,29 @@ var buildResponse = (options) => {
     response.response.reprompt = {
       outputSpeech: {
         type: "SSML",
-        text: "<speak>" + options.repromptText + "</speak>"
+        ssml: "<speak>" + options.repromptText + "</speak>"
       }
     };
+  }
+
+  // card
+  if(options.cardTitle) {
+    response.response.card = {
+      type: "Simple",
+      title: options.cardTitle
+    };
+
+    if(options.imageUrl) {
+      response.response.card.type = "Standard";
+      response.response.card.text = options.cardContent;
+      response.response.card.image = {
+        smallImageUrl: options.imageUrl,
+        largeImageUrl: options.imageUrl
+      };
+    }
+    else {
+      response.response.card.content = options.cardContent;
+    }
   }
 
   if(options.session && options.session.attributes) {
