@@ -4,11 +4,11 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
-    "bespoken-tools": "^1.2.9",
-    "chai": "^4.1.2"
+    "bespoken-tools": "^1.2.9"
   },
   "devDependencies": {
-    "mocha": "^5.1.1"
+    "chai": "^4.1.2",
+    "mocha": "^5.2.0"
   },
   "scripts": {
     "proxy": "bst proxy lambda index.js",

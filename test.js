@@ -4,7 +4,8 @@ var expect = require('chai').expect,
 
 lambdaToTest = require('./index')
 
-
+// returns speechResponse when succeed,
+// returns speedError when fail
 function Context() {
   this.speechResponse = null;
   this.speechError = null;
@@ -21,6 +22,7 @@ function Context() {
 
 }
 
+// if valid response, all these should be true
 function validRsp(ctx,options) {
      expect(ctx.speechError).to.be.null;
      expect(ctx.speechResponse.version).to.be.equal('1.0');
@@ -41,12 +43,28 @@ function validRsp(ctx,options) {
 
 }
 
-function validCard(ctx) {
-     expect(ctx.speechResponse.response.card).not.to.be.undefined;
-     expect(ctx.speechResponse.response.card.type).to.be.equal('Simple');
-     expect(ctx.speechResponse.response.card.title).not.to.be.undefined;
-     expect(ctx.speechResponse.response.card.content).not.to.be.undefined;
+function validCard(ctx, standardCard) {
+  expect(ctx.speechResponse.response.card).not.to.be.undefined;
+  expect(ctx.speechResponse.response.card.title).not.to.be.undefined;
+  if(standardCard) {
+    expect(ctx.speechResponse.response.card.type).to.be.equal('Standard');
+    expect(ctx.speechResponse.response.card.text).not.to.be.undefined;
+    expect(ctx.speechResponse.response.card.image).not.to.be.undefined;
+    expect(ctx.speechResponse.response.card.image.largeImageUrl).to.match(/^https:\/\//);
+    expect(ctx.speechResponse.response.card.image.smallImageUrl).to.match(/^https:\/\//);
+  }
+  else {
+    expect(ctx.speechResponse.response.card.type).to.be.equal('Simple');
+    expect(ctx.speechResponse.response.card.type).not.to.be.undefined;  
+  }
 }
+
+// function validCard(ctx) {
+//   expect(ctx.speechResponse.response.card).not.to.be.undefined;
+//   expect(ctx.speechResponse.response.card.type).to.be.equal('Simple');
+//   expect(ctx.speechResponse.response.card.title).not.to.be.undefined;
+//   expect(ctx.speechResponse.response.card.content).not.to.be.undefined;
+// }
 
 
 
@@ -82,68 +100,73 @@ var event = {
 
 
 describe('All intents', function() {
+  // this Context object will hold the response
   var ctx = new Context();
 
 
   describe('Test LaunchIntent', function() {
 
-      before(function(done) {
-        event.request.type = 'LaunchRequest';
-        event.request.intent = {};
-        event.session.attributes = {};
-        ctx.done = done;
-        lambdaToTest.handler(event , ctx);
+    before(function(done) {
+      event.request.type = 'LaunchRequest';
+      event.request.intent = {};
+      event.session.attributes = {};
+      ctx.done = done;
+      lambdaToTest.handler(event , ctx);
+    });
+
+
+    it('valid response', function() {
+      validRsp(ctx,{
+        endSession: false,
       });
+    });
 
-
-     it('valid response', function() {
-       validRsp(ctx,{
-         endSession: false,
-       });
-     });
-
-     it('valid outputSpeech', function() {
+    // specific to my skills
+    it('valid outputSpeech', function() {
       expect(ctx.speechResponse.response.outputSpeech.ssml).to.match(/Welcome/);
-     });
-    
-     it('valid repromptSpeech', function() {
+    });
+
+    // specific to my skills
+    it('valid repromptSpeech', function() {
       expect(ctx.speechResponse.response.reprompt.outputSpeech.ssml).to.match(/You can say/);
-     });
+    });
 
   });
 
-    describe(`Test HelloIntent`, function() {
 
-        before(function(done) {
-          event.request.intent = {};
-          event.session.attributes = {};
-          event.request.type = 'IntentRequest';
-          event.request.intent.name = 'HelloIntent';
-          event.request.intent.slots = {
-            FirstName: {
-              name: 'FirstName',
-              value: 'John'
-            }
-          };
-          ctx.done = done;
-          lambdaToTest.handler(event , ctx);
-        });
+  // intent check
+  describe(`Test HelloIntent`, function() {
 
-       it('valid response', function() {
-         validRsp(ctx, {
-           endSession: true
-         });
-       });
-
-       it('valid outputSpeech', function() {
-        expect(ctx.speechResponse.response.outputSpeech.ssml).to.match(/Hello .*John. Good/);
-       });
-    
-       //it('valid repromptSpeech', function() {
-       //  expect(ctx.speechResponse.response.reprompt.outputSpeech.ssml).to.match(/<speak>For example.*<\/speak>/);
-       //});
-
+    before(function(done) {
+      event.request.intent = {};
+      event.session.attributes = {};
+      event.request.type = 'IntentRequest';
+      event.request.intent.name = 'HelloIntent';
+      event.request.intent.slots = {
+        FirstName: {
+          name: 'FirstName',
+          value: 'John'
+        }
+      };
+      ctx.done = done;
+      lambdaToTest.handler(event , ctx);
     });
+
+    it('valid response', function() {
+      validRsp(ctx, {
+        endSession: true
+      });
+    });
+
+    it('valid outputSpeech', function() {
+     expect(ctx.speechResponse.response.outputSpeech.ssml).to.match(/Hello .*John.*. Good/);
+    });
+
+    // it('valid repromptSpeech', function() {
+    //  expect(ctx.speechResponse.response.reprompt.outputSpeech.ssml).to.match(/<speak>For example.*<\/speak>/);
+    // });
+
+  });
 
 
 });
