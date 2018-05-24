@@ -6,24 +6,25 @@ lambdaToTest = require('./index')
 
 // returns speechResponse when succeed,
 // returns speedError when fail
-function Context() {
-  this.speechResponse = null;
-  this.speechError = null;
+class Context {
+  constructor() {
+    this.speechResponse = null;
+    this.speechError = null;
 
-  this.succeed = function(rsp) {
-    this.speechResponse = rsp;
-    this.done();
-  };
+    this.succeed = (rsp) => {
+      this.speechResponse = rsp;
+      this.done();
+    };
 
-  this.fail = function(rsp) {
-    this.speechError = rsp;
-    this.done();
-  };
-
+    this.fail = (rsp) => {
+      this.speechError = rsp;
+      this.done();
+    };
+  }
 }
 
 // if valid response, all these should be true
-function validRsp(ctx,options) {
+var validRsp = (ctx,options) => {
      expect(ctx.speechError).to.be.null;
      expect(ctx.speechResponse.version).to.be.equal('1.0');
      expect(ctx.speechResponse.response).not.to.be.undefined;
@@ -43,7 +44,7 @@ function validRsp(ctx,options) {
 
 }
 
-function validCard(ctx, standardCard) {
+var validCard = (ctx, standardCard) => {
   expect(ctx.speechResponse.response.card).not.to.be.undefined;
   expect(ctx.speechResponse.response.card.title).not.to.be.undefined;
   if(standardCard) {
@@ -59,7 +60,7 @@ function validCard(ctx, standardCard) {
   }
 }
 
-// function validCard(ctx) {
+// var validCard = (ctx) => {
 //   expect(ctx.speechResponse.response.card).not.to.be.undefined;
 //   expect(ctx.speechResponse.response.card.type).to.be.equal('Simple');
 //   expect(ctx.speechResponse.response.card.title).not.to.be.undefined;
@@ -99,14 +100,14 @@ var event = {
 
 
 
-describe('All intents', function() {
+describe('All intents', () => {
   // this Context object will hold the response
   var ctx = new Context();
 
 
-  describe('Test LaunchIntent', function() {
+  describe('Test LaunchIntent', () => {
 
-    before(function(done) {
+    before((done) => {
       event.request.type = 'LaunchRequest';
       event.request.intent = {};
       event.session.attributes = {};
@@ -115,19 +116,19 @@ describe('All intents', function() {
     });
 
 
-    it('valid response', function() {
+    it('valid response', () => {
       validRsp(ctx,{
         endSession: false,
       });
     });
 
     // specific to my skills
-    it('valid outputSpeech', function() {
+    it('valid outputSpeech', () => {
       expect(ctx.speechResponse.response.outputSpeech.ssml).to.match(/Welcome/);
     });
 
     // specific to my skills
-    it('valid repromptSpeech', function() {
+    it('valid repromptSpeech', () => {
       expect(ctx.speechResponse.response.reprompt.outputSpeech.ssml).to.match(/You can say/);
     });
 
@@ -135,9 +136,9 @@ describe('All intents', function() {
 
 
   // intent check
-  describe(`Test HelloIntent`, function() {
+  describe(`Test HelloIntent`, () => {
 
-    before(function(done) {
+    before((done) => {
       event.request.intent = {};
       event.session.attributes = {};
       event.request.type = 'IntentRequest';
@@ -152,17 +153,17 @@ describe('All intents', function() {
       lambdaToTest.handler(event , ctx);
     });
 
-    it('valid response', function() {
+    it('valid response', () => {
       validRsp(ctx, {
         endSession: true
       });
     });
 
-    it('valid outputSpeech', function() {
+    it('valid outputSpeech', () => {
      expect(ctx.speechResponse.response.outputSpeech.ssml).to.match(/Hello .*John.*. Good/);
     });
 
-    // it('valid repromptSpeech', function() {
+    // it('valid repromptSpeech', () => {
     //  expect(ctx.speechResponse.response.reprompt.outputSpeech.ssml).to.match(/<speak>For example.*<\/speak>/);
     // });
 
